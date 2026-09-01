@@ -1,0 +1,17 @@
+{
+  "title": "Home Holiday Calendar",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Home Holiday Calendar",
+        "description": "Create a normalized holiday calendar for automations.",
+        "data": {
+          "israel_holiday_schedule": "Use Israel Jewish holiday schedule"
+        },
+        "data_description": {
+          "israel_holiday_schedule": "Leave off for the diaspora schedule used in the United States."
+        }
+      }
+    }
+  }
+}
