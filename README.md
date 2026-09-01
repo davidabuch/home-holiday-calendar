@@ -13,7 +13,11 @@ Entity IDs may receive a numeric suffix if conflicting entities already exist.
 
 ## Important semantic distinction
 
-`Tonight` is deliberately forward-looking. For Jewish holidays it evaluates the Hebrew date that begins after sunset on the current civil date. This makes it safe to use with automations that start before sunset, such as holiday lighting at sunset minus two hours.
+`Today` represents the actual civil-date holiday.
+
+`Tonight` is automation-friendly and deliberately forward-looking. For Jewish holidays it evaluates the Hebrew date that begins after sunset on the current civil date. For selected Gregorian holidays it can also represent an agreed observance window that is broader than the literal holiday date.
+
+This makes `Tonight` safe to use with automations that start before sunset, such as holiday lighting at sunset minus two hours, without changing the meaning of the actual `Today` calendar entity.
 
 ## Gregorian holidays currently normalized
 
@@ -24,6 +28,18 @@ Entity IDs may receive a numeric suffix if conflicting entities already exist.
 - Halloween
 - Thanksgiving (fourth Thursday of November)
 - Christmas (Dec 24 and Dec 25)
+
+### Automation observance windows
+
+- **Thanksgiving:** Wednesday through Sunday of Thanksgiving week.
+- **Independence Day:**
+  - Monday-Thursday July 4: July 4 only.
+  - Friday July 4: Friday through Sunday.
+  - Saturday July 4: Friday through Sunday.
+  - Sunday July 4: Saturday through Sunday.
+- Other supported Gregorian holidays currently use their actual civil date.
+
+Gregorian observance has priority over Jewish holiday state for `Tonight`, preserving the requested rule that Christmas wins on Dec 24 and Dec 25 if holidays overlap.
 
 ## Jewish holidays currently normalized
 
@@ -57,4 +73,4 @@ Leave **Use Israel Jewish holiday schedule** disabled for the diaspora schedule 
 
 ## Version
 
-Current integration version: **0.1.0**
+Current integration version: **0.1.1**
