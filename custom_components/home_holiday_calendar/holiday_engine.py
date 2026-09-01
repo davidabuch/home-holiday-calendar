@@ -51,8 +51,15 @@ def _info(key: str, source: str, raw_name: str | None = None) -> HolidayInfo:
     return HolidayInfo(key, DISPLAY_NAMES[key], source, raw_name)
 
 
+def _thanksgiving_date(year: int) -> date:
+    """Return the fourth Thursday in November for the given year."""
+    day = date(year, 11, 1)
+    first_thursday = day + timedelta(days=(3 - day.weekday()) % 7)
+    return first_thursday + timedelta(weeks=3)
+
+
 def gregorian_holiday(day: date) -> HolidayInfo:
-    """Return fixed/rule-based Gregorian holiday for the civil date."""
+    """Return the actual fixed/rule-based Gregorian holiday for the civil date."""
 
     md = (day.month, day.day)
     fixed = {
@@ -68,12 +75,53 @@ def gregorian_holiday(day: date) -> HolidayInfo:
     if md in fixed:
         return _info(fixed[md], "fixed_gregorian")
 
-    if day.month == 11 and day.weekday() == 3:
-        occurrence = ((day.day - 1) // 7) + 1
-        if occurrence == 4:
-            return _info("thanksgiving", "gregorian_rule")
+    if day == _thanksgiving_date(day.year):
+        return _info("thanksgiving", "gregorian_rule")
 
     return NONE
+
+
+def gregorian_observance_for_evening(day: date) -> HolidayInfo:
+    """Return the Gregorian holiday observance associated with this evening.
+
+    This deliberately differs from :func:`gregorian_holiday` for holidays whose
+    home-automation observance spans more than the literal holiday date.
+
+    Current observance policy:
+    - Thanksgiving: Wednesday through Sunday of Thanksgiving week.
+    - Independence Day: actual date only when Monday-Thursday; Friday-Sunday
+      weekend when July 4 falls Friday or Saturday; Saturday-Sunday when July 4
+      falls Sunday.
+    - All other supported Gregorian holidays: actual civil date only.
+    """
+
+    # Thanksgiving observance: Wednesday through Sunday around the fourth
+    # Thursday in November.
+    thanksgiving = _thanksgiving_date(day.year)
+    if thanksgiving - timedelta(days=1) <= day <= thanksgiving + timedelta(days=3):
+        return _info("thanksgiving", "observance_rule")
+
+    # Independence Day observance window.
+    july_4 = date(day.year, 7, 4)
+    weekday = july_4.weekday()  # Monday=0 ... Sunday=6
+
+    if weekday <= 3:  # Monday-Thursday: July 4 only.
+        july_start = july_end = july_4
+    elif weekday == 4:  # Friday: Friday-Sunday.
+        july_start = july_4
+        july_end = july_4 + timedelta(days=2)
+    elif weekday == 5:  # Saturday: Friday-Sunday.
+        july_start = july_4 - timedelta(days=1)
+        july_end = july_4 + timedelta(days=1)
+    else:  # Sunday: Saturday-Sunday.
+        july_start = july_4 - timedelta(days=1)
+        july_end = july_4
+
+    if july_start <= day <= july_end:
+        return _info("july_4", "observance_rule")
+
+    # Remaining Gregorian holidays follow their actual civil dates.
+    return gregorian_holiday(day)
 
 
 def _normalize_jewish_festival(raw: str | None) -> HolidayInfo:
@@ -126,7 +174,7 @@ def jewish_holiday_tonight(day: date, *, israel: bool = False) -> HolidayInfo:
 
 
 def resolve_today(day: date, *, israel: bool = False) -> HolidayInfo:
-    """Resolve the civil-date holiday with Gregorian priority."""
+    """Resolve the actual civil-date holiday with Gregorian priority."""
     greg = gregorian_holiday(day)
     if greg.key != "none":
         return greg
@@ -134,15 +182,20 @@ def resolve_today(day: date, *, israel: bool = False) -> HolidayInfo:
 
 
 def resolve_tonight(day: date, *, israel: bool = False) -> HolidayInfo:
-    """Resolve the holiday associated with tonight, Gregorian first."""
-    greg = gregorian_holiday(day)
+    """Resolve the automation-friendly holiday observance for tonight.
+
+    Gregorian observance rules have priority. This both supports extended
+    Thanksgiving/Independence Day lighting windows and preserves the requested
+    Christmas-over-Hanukkah behavior on December 24-25.
+    """
+    greg = gregorian_observance_for_evening(day)
     if greg.key != "none":
         return greg
     return jewish_holiday_tonight(day, israel=israel)
 
 
 def next_holiday(day: date, *, israel: bool = False, max_days: int = 550) -> tuple[date, HolidayInfo]:
-    """Return the next future evening with a normalized holiday."""
+    """Return the next future evening with a normalized holiday observance."""
     for offset in range(1, max_days + 1):
         candidate = day + timedelta(days=offset)
         holiday = resolve_tonight(candidate, israel=israel)
