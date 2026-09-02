@@ -26,12 +26,17 @@ class HomeHolidayCalendarCoordinator(DataUpdateCoordinator[dict]):
         today = dt_util.now().date()
         current = resolve_today(today, israel=self.israel)
         tonight = resolve_tonight(today, israel=self.israel)
+        previous_evening = resolve_tonight(
+            today - timedelta(days=1),
+            israel=self.israel,
+        )
         jewish_tonight = jewish_holiday_tonight(today, israel=self.israel)
         next_date, upcoming = next_holiday(today, israel=self.israel)
         return {
             "civil_date": today.isoformat(),
             "today": current,
             "tonight": tonight,
+            "previous_evening": previous_evening,
             "jewish_tonight": jewish_tonight,
             "next_date": next_date.isoformat(),
             "next": upcoming,

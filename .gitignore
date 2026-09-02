@@ -1,9 +1,10 @@
 __pycache__/
 *.py[cod]
-.pytest_cache/
-.ruff_cache/
-.venv/
-venv/
 .DS_Store
-.coverage
-htmlcov/
+*.bak
+*.backup*
+*.tmp
+.storage/
+home-assistant_v2.db*
+secrets.yaml
+*.log

@@ -16,6 +16,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     async_add_entities([
         HolidayTodaySensor(coordinator, entry.entry_id),
         HolidayTonightSensor(coordinator, entry.entry_id),
+        HolidayPreviousEveningSensor(coordinator, entry.entry_id),
         NextHolidaySensor(coordinator, entry.entry_id),
     ])
 
@@ -56,6 +57,16 @@ class HolidayTodaySensor(_HolidaySensor):
 class HolidayTonightSensor(_HolidaySensor):
     def __init__(self, coordinator, entry_id: str) -> None:
         super().__init__(coordinator, entry_id, "tonight", "Home Holiday Calendar Tonight")
+
+
+class HolidayPreviousEveningSensor(_HolidaySensor):
+    def __init__(self, coordinator, entry_id: str) -> None:
+        super().__init__(
+            coordinator,
+            entry_id,
+            "previous_evening",
+            "Home Holiday Calendar Previous Evening",
+        )
 
 
 class NextHolidaySensor(HomeHolidayCalendarEntity, SensorEntity):
