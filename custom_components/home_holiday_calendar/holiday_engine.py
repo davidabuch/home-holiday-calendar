@@ -92,6 +92,8 @@ def gregorian_observance_for_evening(day: date) -> HolidayInfo:
     - Independence Day: actual date only when Monday-Thursday; Friday-Sunday
       weekend when July 4 falls Friday or Saturday; Saturday-Sunday when July 4
       falls Sunday.
+    - Halloween: Thursday through Halloween when October 31 falls Friday,
+      Saturday, or Sunday; actual date only Monday-Thursday.
     - All other supported Gregorian holidays: actual civil date only.
     """
 
@@ -119,6 +121,16 @@ def gregorian_observance_for_evening(day: date) -> HolidayInfo:
 
     if july_start <= day <= july_end:
         return _info("july_4", "observance_rule")
+
+    # Halloween observance: begin on Thursday for Friday-Sunday Halloween.
+    halloween = date(day.year, 10, 31)
+    if halloween.weekday() >= 4:  # Friday-Sunday.
+        halloween_start = halloween - timedelta(days=halloween.weekday() - 3)
+    else:  # Monday-Thursday: Halloween only.
+        halloween_start = halloween
+
+    if halloween_start <= day <= halloween:
+        return _info("halloween", "observance_rule")
 
     # Remaining Gregorian holidays follow their actual civil dates.
     return gregorian_holiday(day)
