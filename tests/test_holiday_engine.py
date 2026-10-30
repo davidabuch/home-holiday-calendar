@@ -71,3 +71,34 @@ def test_2026_hanukkah_evenings() -> None:
 def test_christmas_wins_if_jewish_holiday_overlaps() -> None:
     assert resolve_tonight(date(2026, 12, 24)).key == "christmas"
     assert resolve_tonight(date(2026, 12, 25)).key == "christmas"
+
+
+def test_halloween_friday_observance_thursday_and_friday() -> None:
+    # 2025-10-31 is Friday.
+    assert resolve_tonight(date(2025, 10, 29)).key != "halloween"
+    for day in (30, 31):
+        assert resolve_tonight(date(2025, 10, day)).key == "halloween"
+    assert resolve_tonight(date(2025, 11, 1)).key != "halloween"
+
+
+def test_halloween_saturday_observance_thursday_through_saturday() -> None:
+    # 2026-10-31 is Saturday.
+    assert resolve_tonight(date(2026, 10, 28)).key != "halloween"
+    for day in (29, 30, 31):
+        assert resolve_tonight(date(2026, 10, day)).key == "halloween"
+    assert resolve_tonight(date(2026, 11, 1)).key != "halloween"
+
+
+def test_halloween_sunday_observance_thursday_through_sunday() -> None:
+    # 2027-10-31 is Sunday.
+    assert resolve_tonight(date(2027, 10, 27)).key != "halloween"
+    for day in (28, 29, 30, 31):
+        assert resolve_tonight(date(2027, 10, day)).key == "halloween"
+    assert resolve_tonight(date(2027, 11, 1)).key != "halloween"
+
+
+def test_halloween_midweek_is_actual_date_only() -> None:
+    # 2028-10-31 is Tuesday.
+    assert resolve_tonight(date(2028, 10, 30)).key != "halloween"
+    assert resolve_tonight(date(2028, 10, 31)).key == "halloween"
+    assert resolve_tonight(date(2028, 11, 1)).key != "halloween"
